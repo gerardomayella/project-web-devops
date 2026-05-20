@@ -1,0 +1,76 @@
+name: Pemeriksaan Keamanan (Security Check)
+
+on:
+  workflow_run:
+    workflows: ["Otomasi Deploy Lokal"]
+    types:
+      - completed
+  schedule:
+    - cron: '0 0 * * 0' # Setiap hari Minggu jam 00:00 UTC
+  workflow_dispatch: # Mengaktifkan jalannya manual dari GitHub UI
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Menarik kode terbaru dari GitHub
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit Kerentanan Dependensi (NPM Audit)
+        run: |
+          npm audit --audit-level=high > npm-audit-report.txt || true
+          cat npm-audit-report.txt
+
+      - name: Pasang ClamAV Antivirus
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clamav
+
+      - name: Pindai Kode dari Malware (ClamAV Scan)
+        run: |
+          clamscan -r --exclude-dir=node_modules . > clamav-report.txt || true
+          cat clamav-report.txt
+
+      - name: Kirim Hasil Laporan ke Discord
+        run: |
+          # Evaluasi status Malware Scan
+          if grep -q "Infected files: 0" clamav-report.txt; then
+            MALWARE_STATUS="✅ Bersih (0 Malware Terdeteksi)"
+          else
+            MALWARE_STATUS="⚠️ Peringatan: Kemungkinan ancaman malware terdeteksi!"
+          fi
+
+          # Evaluasi status Dependensi Audit
+          if grep -q "found 0 vulnerabilities" npm-audit-report.txt || grep -q "found 0 severity vulnerabilities" npm-audit-report.txt || [ ! -s npm-audit-report.txt ]; then
+            VULN_STATUS="✅ Aman (0 Kerentanan Keamanan)"
+          else
+            VULN_STATUS="⚠️ Terdeteksi Kerentanan Tingkat Tinggi / Kritis! Silakan periksa hasil npm audit."
+          fi
+
+          # Kirim ke Discord Webhook
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "embeds": [{
+                   "title": "🛡️ LAPORAN KEAMANAN APLIKASI (SECURITY SCAN)",
+                   "description": "Audit keamanan berkala untuk kode aplikasi HexaObserve.",
+                   "color": 3447003,
+                   "fields": [
+                     {"name": "Malware & Antivirus Scan", "value": "'"$MALWARE_STATUS"'", "inline": false},
+                     {"name": "Dependency Audit", "value": "'"$VULN_STATUS"'", "inline": false},
+                     {"name": "Pemicu Scan", "value": "'"${{ github.event_name }}"'", "inline": true},
+                     {"name": "Repository", "value": "'"${{ github.repository }}"'", "inline": true}
+                   ]
+                 }]
+               }' \
+               https://discord.com/api/webhooks/1481288533833683016/QivZ9fxgg57t_iQjepDOcLS9Zfb84MWxO4XNNQP-9bF_7HcIhzp634uTVwGeUML1TfVK
