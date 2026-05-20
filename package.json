@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon -L server.js"
+    "dev": "nodemon -L server.js",
+    "lint": "node --check server.js public/app.js",
+    "test": "node --test test/"
   },
   "dependencies": {
     "cors": "^2.8.6",
