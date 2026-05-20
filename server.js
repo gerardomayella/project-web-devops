@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const { Pool } = require('pg'); // Driver Postgres
 const crypto = require('crypto'); // Modul crypto bawaan Node.js
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -221,6 +220,7 @@ app.get('/test-db', authenticateToken, async (req, res) => {
 // 8. Menjalankan Server
 app.listen(PORT, () => {
     console.log(`Aplikasi berjalan di port ${PORT}`);
+    console.log(`test`);
 });
 
 // 9. Metrik Prometheus (Unsecured agar Prometheus dapat melakukan scraping)
