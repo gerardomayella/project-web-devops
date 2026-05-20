@@ -11,3 +11,5 @@ grafana-data/
 
 # Log files
 *.log
+
+cloudflared.deb
