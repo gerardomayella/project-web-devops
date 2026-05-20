@@ -48,14 +48,9 @@ services:
     init: true
     ports:
       - "8080:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
     environment:
-      DB_HOST: postgres-db
-      DB_USER: admin
-      DB_PASSWORD: admin
-      DB_NAME: appnodejs_db
+      - NODE_ENV=production
+      - PORT=3000
     networks:
       - frontend-net
       - backend-net
