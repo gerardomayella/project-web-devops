@@ -1,0 +1,138 @@
+version: '3.8'
+
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    driver: bridge
+  monitoring-net:
+    driver: bridge
+
+
+volumes:
+  pg-data:
+  prom-data:
+  grafana-data:
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: database_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: appnodejs_db
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d appnodejs_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'   
+          memory: 512M
+
+
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_web
+    restart: unless-stopped
+    init: true
+    ports:
+      - "8080:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      DB_HOST: postgres-db
+      DB_USER: admin
+      DB_PASSWORD: admin
+      DB_NAME: appnodejs_db
+    networks:
+      - frontend-net
+      - backend-net
+      - monitoring-net
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'   
+          memory: 256M
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: sensor_mesin
+    restart: unless-stopped
+    networks:
+      - monitoring-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_core
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prom-data:/prometheus
+    networks:
+      - monitoring-net
+    depends_on:
+      - node-exporter
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_ui
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - frontend-net
+      - monitoring-net
+    depends_on:
+      - prometheus
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: cctv_database
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://admin:admin@postgres-db:5432/appnodejs_db?sslmode=disable"
+    networks:
+      - backend-net
+      - monitoring-net
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_gateway
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - frontend-net
+    depends_on:
+      - web-app
+      - grafana
+
+

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HexaObserve - Next-Gen Observation & Monitoring Suite</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background grid & ambient glows -->
+    <div class="ambient-glow glow-purple"></div>
+    <div class="ambient-glow glow-cyan"></div>
+    <div class="grid-overlay"></div>
+
+    <header class="navbar">
+        <div class="container nav-container">
+            <div class="logo">
+                <i class="fa-solid fa-circle-nodes logo-icon"></i>
+                <span>Hexa<span class="gradient-text text-accent">Observe</span></span>
+            </div>
+            <nav class="nav-links">
+                <a href="#dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                <a href="#features"><i class="fa-solid fa-cubes"></i> Features</a>
+                <a href="http://localhost:9090" target="_blank" class="nav-external"><i class="fa-solid fa-fire"></i> Prometheus</a>
+                <a href="http://localhost:3000" target="_blank" class="nav-external"><i class="fa-solid fa-gauge-high"></i> Grafana</a>
+            </nav>
+            <div class="auth-navbar-actions">
+                <button class="btn btn-secondary btn-nav-auth" id="btn-show-auth">
+                    <i class="fa-solid fa-right-to-bracket"></i> Login / Register
+                </button>
+                <div class="user-profile-badge" id="user-profile-badge" style="display: none;">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span id="nav-username">username</span>
+                    <button class="btn-logout" id="btn-logout" title="Log Out"><i class="fa-solid fa-power-off"></i></button>
+                </div>
+            </div>
+            <div class="server-badge" id="system-badge">
+                <span class="status-dot pulse"></span>
+                <span class="badge-text">Server Online</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero container">
+            <div class="hero-content">
+                <div class="badge-new">
+                    <span class="badge-new-text">v1.0.0 Stable</span>
+                    <span class="badge-new-tag">New Release</span>
+                </div>
+                <h1>Empower Your DevOps Stack with <span class="gradient-text">HexaObserve</span></h1>
+                <p class="hero-subtitle">
+                    A beautiful, unified observability suite tracking container health, metrics, and PostgreSQL databases in real-time. Built on top of Prometheus and Grafana.
+                </p>
+                <div class="hero-actions">
+                    <a href="#dashboard" class="btn btn-primary">
+                        <i class="fa-solid fa-chart-pie"></i> View Live Dashboard
+                    </a>
+                    <a href="#features" class="btn btn-secondary">
+                        Explore Features
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Dashboard Section -->
+        <section id="dashboard" class="dashboard-section container">
+            <div class="section-header">
+                <h2>Live Telemetry Dashboard</h2>
+                <p>Real-time updates directly from the Node.js backend and PostgreSQL connection pool.</p>
+            </div>
+
+            <div class="dashboard-relative-wrapper">
+                <!-- Restricted Overlay -->
+                <div class="dashboard-overlay-lock" id="dashboard-lock-overlay">
+                    <div class="lock-card">
+                        <i class="fa-solid fa-shield-halved lock-icon"></i>
+                        <h3>Authentication Required</h3>
+                        <p>You must be signed in to access the system status, database latency statistics, and performance diagnostics logs.</p>
+                        <button class="btn btn-primary btn-lock-login" id="btn-lock-login-trigger">
+                            <i class="fa-solid fa-key"></i> Sign In to HexaObserve
+                        </button>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Card 1: Postgres Status -->
+                    <div class="card card-status glow-hover">
+                        <div class="card-icon-wrapper db-color">
+                            <i class="fa-solid fa-database"></i>
+                        </div>
+                        <h3>Database Health</h3>
+                        <div class="metric-value" id="db-status-val">Checking...</div>
+                        <div class="metric-meta" id="db-latency-meta">Ping latency: -- ms</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar db-bar" id="db-bar" style="width: 0%"></div>
+                        </div>
+                        <button class="btn btn-card-action" id="btn-diagnostic">
+                            <i class="fa-solid fa-flask"></i> Run DB Diagnostic
+                        </button>
+                    </div>
+
+                    <!-- Card 2: Server Uptime -->
+                    <div class="card card-status glow-hover">
+                        <div class="card-icon-wrapper server-color">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <h3>Server Uptime</h3>
+                        <div class="metric-value" id="uptime-val">00h 00m 00s</div>
+                        <div class="metric-meta">Node.js Server Lifecycle</div>
+                        <div class="telemetry-info">
+                            <span>Platform</span>
+                            <strong id="node-platform">Linux x64</strong>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Resources -->
+                    <div class="card card-status glow-hover">
+                        <div class="card-icon-wrapper mem-color">
+                            <i class="fa-solid fa-memory"></i>
+                        </div>
+                        <h3>Server Memory Usage</h3>
+                        <div class="metric-value" id="mem-val">-- MB</div>
+                        <div class="metric-meta" id="mem-pct-meta">Heap Memory Allocation</div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar mem-bar" id="mem-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="telemetry-info">
+                            <span>External / RSS</span>
+                            <strong id="rss-val">-- MB</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostics log area -->
+                <div class="diagnostics-box" id="diagnostics-box" style="display: none;">
+                    <div class="diag-header">
+                        <span><i class="fa-solid fa-terminal"></i> Diagnostic Output Logs</span>
+                        <button class="diag-close" id="btn-close-diag">&times;</button>
+                    </div>
+                    <pre class="diag-log" id="diag-log">Starting database diagnostic sequence...</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="features-section container">
+            <div class="section-header">
+                <h2>Our Observability Infrastructure</h2>
+                <p>Powered by open-source industry standards, built for reliability.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fa-solid fa-server feature-icon"></i>
+                    <h4>Vagrant & VirtualBox</h4>
+                    <p>Isolated dev environment configuration (4 Cores, 4GB RAM) for predictable testing.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-brands fa-docker feature-icon"></i>
+                    <h4>Docker Compose</h4>
+                    <p>Containerized microservices separating database, web server, and monitoring stacks.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-magnifying-glass-chart feature-icon"></i>
+                    <h4>Prometheus Core</h4>
+                    <p>Time-series database gathering metrics every 15 seconds from your live services.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-gauge feature-icon"></i>
+                    <h4>Grafana Visualizer</h4>
+                    <p>Advanced metrics visualization and dashboards using direct Prometheus feeds.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-shield-halved feature-icon"></i>
+                    <h4>Helmet & CORS Shield</h4>
+                    <p>Production-ready security headers protecting Express API endpoints.</p>
+                </div>
+                <div class="feature-item">
+                    <i class="fa-solid fa-microchip feature-icon"></i>
+                    <h4>Exporter Telemetry</h4>
+                    <p>System-wide health data gathered through node-exporter and postgres-exporter.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-container">
+            <p>&copy; 2026 HexaObserve. Powered by Antigravity AI.</p>
+            <div class="footer-links">
+                <a href="http://localhost:9090" target="_blank">Prometheus Target</a>
+                <a href="http://localhost:3000" target="_blank">Grafana Control Panel</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal" style="display: none;">
+        <div class="modal-card">
+            <button class="modal-close" id="btn-close-auth">&times;</button>
+            <div class="modal-tabs">
+                <button class="tab-btn active" id="tab-login-btn">Sign In</button>
+                <button class="tab-btn" id="tab-signup-btn">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="form-login" class="auth-form active">
+                <div class="form-group">
+                    <label for="login-username"><i class="fa-solid fa-user"></i> Username</label>
+                    <input type="text" id="login-username" required placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="login-password" required placeholder="Enter password">
+                </div>
+                <div class="error-msg" id="login-error-msg"></div>
+                <button type="submit" class="btn btn-primary btn-auth-submit">
+                    <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                </button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="form-signup" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signup-username"><i class="fa-solid fa-user"></i> Username</label>
+                    <input type="text" id="signup-username" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label for="signup-email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <input type="email" id="signup-email" required placeholder="Enter your email">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password"><i class="fa-solid fa-lock"></i> Password</label>
+                    <input type="password" id="signup-password" required placeholder="Choose a secure password">
+                </div>
+                <div class="error-msg" id="signup-error-msg"></div>
+                <div class="success-msg" id="signup-success-msg"></div>
+                <button type="submit" class="btn btn-primary btn-auth-submit">
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

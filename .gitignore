@@ -1,0 +1,13 @@
+# Dependensi Node.js
+node_modules/
+
+# Rahasia & Environment Variables
+.env
+
+# Data Persisten Docker (JANGAN DI-PUSH!)
+pg-data/
+prom-data/
+grafana-data/
+
+# Log files
+*.log
