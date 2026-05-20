@@ -205,7 +205,7 @@ app.get('/test-db', authenticateToken, async (req, res) => {
         
         res.json({
             status: 'SUKSES',
-            pesan: 'Aplikasi Node.js berhasil jabat tangan dengan Postgres!',
+            pesan: 'Aplikasi Node.js berhasil terkoneksi dengan Postgres!',
             waktu_server_pg: result.rows[0].waktu_database
         });
     } catch (error) {
@@ -220,7 +220,7 @@ app.get('/test-db', authenticateToken, async (req, res) => {
 
 // 8. Menjalankan Server
 app.listen(PORT, () => {
-    console.log(`Aplikasi berjalan mantap di port ${PORT}`);
+    console.log(`Aplikasi berjalan di port ${PORT}`);
 });
 
 // 9. Metrik Prometheus (Unsecured agar Prometheus dapat melakukan scraping)
