@@ -40,9 +40,9 @@ const initializeDatabase = async () => {
     `;
     try {
         await pool.query(createTableQuery);
-        console.log('✅ Tabel users siap digunakan.');
+        console.log('Tabel users siap digunakan.');
     } catch (err) {
-        console.error('❌ Gagal menginisialisasi tabel users:', err.message);
+        console.error('Gagal menginisialisasi tabel users:', err.message);
     }
 };
 initializeDatabase();
@@ -220,7 +220,7 @@ app.get('/test-db', authenticateToken, async (req, res) => {
 
 // 8. Menjalankan Server
 app.listen(PORT, () => {
-    console.log(`🚀 Aplikasi berjalan mantap di port ${PORT}`);
+    console.log(`Aplikasi berjalan mantap di port ${PORT}`);
 });
 
 // 9. Metrik Prometheus (Unsecured agar Prometheus dapat melakukan scraping)
